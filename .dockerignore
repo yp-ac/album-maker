@@ -1,0 +1,78 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Testing
+.pytest_cache/
+.coverage
+coverage_html/
+htmlcov/
+*.cover
+.hypothesis/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+.github/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+album_maker.db
+
+# Spec files
+.specify/
+specs/
+
+# Sample data
+Sample_Images/
+data/
+
+# Documentation
+README.md
+*.md
+
+# Scripts
+debug_db.py
+print_images.py
+verify_exif.py
+generate_sample_images.py
+manual_test_*.py
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Config
+.python-version
+pytest.ini
+
+# CI/CD
+.github/
+
+# Lock files (uv.lock is needed, so don't ignore it)
+# uv.lock

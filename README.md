@@ -1,56 +1,87 @@
 # 📸 Smart Album Maker
 
-An intelligent photo organization system that uses advanced algorithms to automatically cluster, filter, and organize your images.
+An intelligent photo organization system with a **complete production-ready DevOps pipeline** for Azure cloud deployment.
 
 ## ✨ Features
 
 ### 🗺️ **GPS & Time-Based Clustering**
 - Automatically groups photos taken at similar locations and times
-- Uses hierarchical clustering with Haversine distance calculation
+- Uses hierarchical divide-and-conquer algorithm with Haversine distance
 - Configurable distance and time thresholds
 
 ### 🎯 **Blur Detection & Filtering**
 - Detects image sharpness using Laplacian variance
-- Automatically removes blurred duplicate images
+- Greedy algorithm to remove blurred duplicate images
 - Keeps only the sharpest version of similar photos
 
 ### 🕸️ **Graph-Based Duplicate Detection**
 - Uses perceptual hashing for near-duplicate detection
-- Finds transitive duplicates (if A≈B and B≈C, groups all three)
+- NetworkX connected components for transitive duplicate groups
 - Handles cropped, rotated, and slightly edited versions
+
+### 🚀 **Production DevOps Pipeline**
+- **CI/CD**: Automated testing and deployment with GitHub Actions
+- **Containerization**: Multi-stage Docker builds optimized for production
+- **Infrastructure as Code**: Azure Bicep templates for reproducible deployments
+- **Multi-Environment**: Separate dev, staging, and production environments
+- **Monitoring**: Application Insights integration with custom metrics
+- **Security**: HTTPS-only, Managed Identity, TLS 1.2, RBAC
 
 ## 🚀 Quick Start
 
-### Prerequisites
-
-- Python 3.13+
-- `uv` package manager (recommended) or `pip`
-
-### Installation
+### Option 1: Local Development (Python)
 
 ```bash
 # Clone the repository
 git clone <your-repo-url>
 cd album-maker
 
-# Install dependencies
-uv sync
+# Install dependencies with uv
+uv sync --group dev
 
-# Or with pip
-pip install -r requirements.txt
-```
+# Run tests
+uv run pytest
 
-### Running the App
-
-```bash
-# Start the Streamlit web interface
-uv run streamlit run app.py
-
-# Or with python directly
+# Start the app
 streamlit run app.py
 ```
 
-The app will open in your browser at `http://localhost:8501`
+### Option 2: Docker (Recommended)
+
+```bash
+# Using Docker Compose
+docker-compose up --build
+
+# Or using Docker directly
+docker build -t album-maker:latest .
+docker run -p 8501:8501 -v $(pwd)/data:/app/data album-maker:latest
+```
+
+### Option 3: Deploy to Azure
+
+**📖 See [SETUP_CREDENTIALS.md](SETUP_CREDENTIALS.md) for the complete step-by-step guide.**
+
+Quick overview:
+```bash
+# 1. Login and create container registry
+az login
+az acr create --resource-group college --name cracalbummaker --sku Basic --admin-enabled true
+
+# 2. Get credentials and add to GitHub secrets
+az ad sp create-for-rbac --name "github-album-maker-deploy" --role contributor \
+  --scopes /subscriptions/$(az account show --query id -o tsv)/resourceGroups/college --json-auth
+
+# 3. Deploy infrastructure
+az deployment group create \
+  --resource-group college \
+  --template-file infrastructure/main.bicep \
+  --parameters infrastructure/parameters.json
+
+# 4. Push to trigger automatic deployment
+git push origin main
+```
+
+The app will be available at: `https://app-album-maker.azurewebsites.net`
 
 ## 🎨 Usage
 
@@ -102,21 +133,35 @@ uv run python manual_test_graph_duplicates.py
 
 ```
 album-maker/
-├── app.py                          # Streamlit web application
+├── .github/workflows/
+│   ├── ci.yml                      # CI pipeline (testing)
+│   └── cd.yml                      # CD pipeline (deployment to Azure)
+├── infrastructure/
+│   ├── main.bicep                  # Azure infrastructure template
+│   ├── parameters.*.json           # Environment configs (dev/staging/prod)
+│   └── SETUP.md                    # Azure deployment guide
 ├── src/
-│   ├── clustering.py               # GPS/Time clustering algorithms
-│   ├── duplicate_detection.py      # Blur filtering & duplicate detection
-│   ├── graph_duplicates.py         # Graph-based duplicate detection
+│   ├── clustering.py               # GPS/Time clustering (Divide & Conquer)
+│   ├── duplicate_detection.py      # Blur filtering (Greedy)
+│   ├── graph_duplicates.py         # Graph duplicate detection
+│   ├── app_insights.py             # Application Insights monitoring
 │   ├── image_processing.py         # Image analysis utilities
 │   ├── database.py                 # SQLite database operations
 │   ├── models.py                   # Data models
 │   └── error_handling.py           # Error handling utilities
 ├── tests/
-│   ├── test_clustering.py          # Clustering tests (23 tests)
-│   ├── test_duplicate_detection.py # Duplicate detection tests (6 tests)
-│   └── test_graph_duplicates.py    # Graph algorithm tests (13 tests)
-├── specs/                          # Feature specifications
-└── pyproject.toml                  # Project configuration
+│   ├── test_clustering.py          # 23 tests for clustering
+│   ├── test_duplicate_detection.py # 6 tests for duplicates
+│   └── test_graph_duplicates.py    # 13 tests for graph algorithms
+├── app.py                          # Streamlit web application
+├── Dockerfile                      # Multi-stage Docker build
+├── docker-compose.yml              # Local development setup
+├── pytest.ini                      # Test configuration
+├── pyproject.toml                  # Dependencies & config
+├── QUICKSTART.md                   # Quick reference guide
+├── DOCKER.md                       # Docker documentation
+├── DEVOPS.md                       # DevOps architecture
+└── PROJECT_SUMMARY.md              # Complete implementation summary
 ```
 
 ## 🔬 Algorithms Used
@@ -149,13 +194,25 @@ album-maker/
 
 ## 🎨 Technology Stack
 
+### Application
 - **Frontend**: Streamlit (with custom teal theme)
 - **Backend**: Python 3.13+
 - **Image Processing**: Pillow, OpenCV, ImageHash
 - **Graph Analysis**: NetworkX
 - **Data Visualization**: Plotly, Pandas
 - **Database**: SQLite3
-- **Testing**: pytest
+
+### DevOps & Cloud
+- **CI/CD**: GitHub Actions
+- **Containerization**: Docker, Docker Compose
+- **Cloud Platform**: Microsoft Azure
+  - App Service (Linux containers)
+  - Container Registry (ACR)
+  - Application Insights
+  - Storage Account
+- **IaC**: Azure Bicep
+- **Monitoring**: OpenCensus, Application Insights
+- **Testing**: pytest (42 tests, >80% coverage)
 
 ## 📝 Configuration Options
 
@@ -175,19 +232,73 @@ album-maker/
 
 ## 🐛 Troubleshooting
 
-### Images not clustering?
+### Application Issues
+
+#### Images not clustering?
 - Check if images have GPS metadata (EXIF data)
 - Try increasing distance/time thresholds
 - Some images may not have location data
 
-### Too many duplicates detected?
+#### Too many duplicates detected?
 - Increase similarity threshold (make it more strict)
 - Adjust blur threshold to be less aggressive
 
-### App not starting?
+#### App not starting?
 - Make sure all dependencies are installed: `uv sync`
 - Check Python version: `python --version` (should be 3.13+)
-- Try: `uv run streamlit run app.py`
+- Try: `streamlit run app.py`
+
+### Docker Issues
+
+#### Container fails to start?
+```bash
+# Check logs
+docker-compose logs -f
+
+# Test image locally
+docker run -it album-maker:latest /bin/bash
+```
+
+#### Port already in use?
+```bash
+# Use different port
+docker run -p 8502:8501 album-maker:latest
+```
+
+### Azure Deployment Issues
+
+See **[infrastructure/SETUP.md](infrastructure/SETUP.md)** for detailed troubleshooting:
+- Service principal authentication
+- Container registry credentials  
+- Health check failures
+- Application Insights configuration
+
+## 📚 Documentation
+
+- **[QUICKSTART.md](QUICKSTART.md)** - Quick reference for common tasks
+- **[DOCKER.md](DOCKER.md)** - Docker usage and configuration
+- **[DEVOPS.md](DEVOPS.md)** - Complete DevOps architecture
+- **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** - Implementation summary
+- **[infrastructure/SETUP.md](infrastructure/SETUP.md)** - Azure deployment guide
+
+## 🎓 Learning Objectives
+
+This project demonstrates:
+
+### Algorithms & Data Structures
+- ✅ Divide & Conquer (hierarchical clustering)
+- ✅ Greedy Algorithms (blur filtering)
+- ✅ Graph Algorithms (connected components)
+- ✅ Complexity Analysis (O(n²), O(n log n), O(V+E))
+
+### DevOps & Cloud
+- ✅ CI/CD Pipeline design
+- ✅ Infrastructure as Code
+- ✅ Container orchestration
+- ✅ Cloud deployment
+- ✅ Monitoring & observability
+- ✅ Multi-environment management
+- ✅ Security best practices
 
 ## 📜 License
 
@@ -203,13 +314,21 @@ Built using:
 
 ## 🚧 Future Enhancements
 
+### Application Features
 - [ ] Cloud storage integration (Google Photos, Dropbox)
-- [ ] Batch processing for large collections
 - [ ] Machine learning-based quality assessment
 - [ ] Face recognition for person-based clustering
 - [ ] Export to different album formats
-- [ ] Progressive web app (PWA) support
+
+### DevOps Improvements
+- [ ] Auto-scaling configuration
+- [ ] Blue-green deployments
+- [ ] Canary releases
+- [ ] Custom domain with SSL
+- [ ] CDN for static assets
+- [ ] Automated backup strategy
+- [ ] Disaster recovery plan
 
 ---
 
-Made with ❤️ using advanced algorithms and a teal theme! 🎨
+**Made with ❤️ using advanced algorithms, a teal theme, and production-ready DevOps! 🎨☁️**

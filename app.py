@@ -40,7 +40,10 @@ if 'processed' not in st.session_state:
     st.session_state.processed = False
 if 'db' not in st.session_state:
     # Initialize database connection (persistent across sessions)
-    db_path = Path("album_maker.db")
+    # Use environment variable for Docker compatibility, fallback to local path
+    db_dir = os.getenv("DB_PATH", ".")
+    db_path = Path(db_dir) / "album_maker.db"
+    db_path.parent.mkdir(parents=True, exist_ok=True)
     st.session_state.db = Database(str(db_path))
 if 'images' not in st.session_state:
     st.session_state.images = []
@@ -253,7 +256,8 @@ def main():
                 try:
                     # Clear all data from tables
                     import sqlite3
-                    db_path = Path("album_maker.db")
+                    db_dir = os.getenv("DB_PATH", ".")
+                    db_path = Path(db_dir) / "album_maker.db"
                     if db_path.exists():
                         conn = sqlite3.connect(str(db_path))
                         conn.execute("DELETE FROM duplicate_groups")
