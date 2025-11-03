@@ -113,8 +113,6 @@ venv.bak/
 specs/
 .specify
 .vscode/
-.github/
-tests/
 
 # Spyder project settings
 .spyderproject

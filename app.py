@@ -245,6 +245,35 @@ def main():
             disabled=not enable_graph_duplicates
         )
         
+        st.markdown("---")
+        st.subheader("🗑️ Database Management")
+        
+        if st.button("Clear Database", type="secondary", use_container_width=True):
+            if st.session_state.db:
+                try:
+                    # Clear all data from tables
+                    import sqlite3
+                    db_path = Path("album_maker.db")
+                    if db_path.exists():
+                        conn = sqlite3.connect(str(db_path))
+                        conn.execute("DELETE FROM duplicate_groups")
+                        conn.execute("DELETE FROM images")
+                        conn.execute("DELETE FROM clusters")
+                        conn.commit()
+                        conn.close()
+                        
+                        # Reset session state
+                        st.session_state.processed = False
+                        st.session_state.images = []
+                        st.session_state.stats = {}
+                        
+                        st.success("✅ Database cleared successfully!")
+                        st.rerun()
+                except Exception as e:
+                    st.error(f"Error clearing database: {e}")
+            else:
+                st.info("No database to clear")
+        
     # Main content
     tab1, tab2, tab3 = st.tabs(["📤 Upload & Process", "📊 Results", "🖼️ Gallery"])
     
