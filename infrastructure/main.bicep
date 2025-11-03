@@ -7,25 +7,25 @@ targetScope = 'resourceGroup'
   'staging'
   'prod'
 ])
-param environment string = 'dev'
+param environment string = 'prod'
 
 @description('Location for all resources')
 param location string = resourceGroup().location
 
 @description('Container Registry name')
-param acrName string = 'cracalbummaker${environment}'
+param acrName string
 
 @description('App Service Plan name')
-param appServicePlanName string = 'asp-album-maker-${environment}'
+param appServicePlanName string
 
 @description('Web App name')
-param webAppName string = 'app-album-maker-${environment}'
+param webAppName string
 
 @description('Application Insights name')
-param appInsightsName string = 'appi-album-maker-${environment}'
+param appInsightsName string
 
 @description('Storage Account name')
-param storageAccountName string = 'stalbummaker${environment}'
+param storageAccountName string
 
 @description('App Service Plan SKU')
 @allowed([

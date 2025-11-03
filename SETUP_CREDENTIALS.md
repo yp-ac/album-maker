@@ -20,19 +20,27 @@ az account show
 
 ---
 
-## Step 2: Register Azure Container Registry Provider
+## Step 2: Register Required Azure Providers
 
-**Required for Azure for Students subscriptions** - register the Container Registry service:
+**Required for Azure for Students subscriptions** - register all Azure services we'll use:
 
 ```bash
-# Register the Container Registry provider (takes ~1 minute)
+# Register all required providers (takes ~1-2 minutes total)
 az provider register --namespace Microsoft.ContainerRegistry
+az provider register --namespace microsoft.operationalinsights
+az provider register --namespace Microsoft.Web
+az provider register --namespace Microsoft.Insights
+az provider register --namespace Microsoft.Storage
 
-# Wait for registration to complete
+# Wait for registration to complete - all should show "Registered"
 az provider show --namespace Microsoft.ContainerRegistry --query "registrationState"
+az provider show --namespace microsoft.operationalinsights --query "registrationState"
+az provider show --namespace Microsoft.Web --query "registrationState"
+az provider show --namespace Microsoft.Insights --query "registrationState"
+az provider show --namespace Microsoft.Storage --query "registrationState"
 ```
 
-Wait until you see `"Registered"` in the output before continuing.
+Wait until all show `"Registered"` before continuing (check every 30 seconds).
 
 ---
 
@@ -51,7 +59,7 @@ az acr create \
 
 **Note:** If the `college` resource group doesn't exist, create it first:
 ```bash
-az group create --name college --location eastus
+az group create --name college --location centralindia
 ```
 
 ---
@@ -222,20 +230,26 @@ After deployment completes (~5-10 minutes):
 
 ## Troubleshooting
 
-### "The subscription is not registered to use namespace 'Microsoft.ContainerRegistry'"
+### "The subscription is not registered to use namespace 'Microsoft.XXX'"
+This is common for Azure for Students. Register all providers at once:
+
 ```bash
-# Register the provider
+# Register all providers
 az provider register --namespace Microsoft.ContainerRegistry
+az provider register --namespace microsoft.operationalinsights
+az provider register --namespace Microsoft.Web
+az provider register --namespace Microsoft.Insights
+az provider register --namespace Microsoft.Storage
 
-# Check registration status
-az provider show --namespace Microsoft.ContainerRegistry --query "registrationState"
-
-# Wait until it shows "Registered" (takes ~1 minute)
+# Check status (all should show "Registered")
+az provider list --query "[?namespace=='Microsoft.ContainerRegistry' || namespace=='microsoft.operationalinsights' || namespace=='Microsoft.Web' || namespace=='Microsoft.Insights' || namespace=='Microsoft.Storage'].{Namespace:namespace, State:registrationState}" -o table
 ```
+
+Wait ~1-2 minutes and check again if any show "Registering".
 
 ### "Resource group 'college' not found"
 ```bash
-az group create --name college --location eastus
+az group create --name college --location centralindia
 ```
 
 ### "Service principal already exists"
